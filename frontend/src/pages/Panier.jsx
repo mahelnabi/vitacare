@@ -1,0 +1,417 @@
+import { useState } from 'react'
+ 
+function Panier({ panierData, user, navigate }) {
+  const [etape, setEtape] = useState(1)
+  const [loading, setLoading] = useState(false)
+  const [erreur, setErreur] = useState('')
+  const [form, setForm] = useState({
+    nom: user?.nom || '',
+    prenom: user?.prenom || '',
+    email: '',
+    note: '',
+    carte: '4242 4242 4242 4242',
+    expiration: '',
+    cvv: ''
+  })
+ 
+  if (!panierData) {
+    navigate('accueil')
+    return null
+  }
+ 
+  const { service, intervenant, creneau, date_heure } = panierData
+ 
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value })
+  }
+ 
+  const handleConfirmer = async () => {
+    if (!form.expiration || !form.cvv) {
+      setErreur('Veuillez remplir les informations de paiement')
+      return
+    }
+ 
+    setLoading(true)
+    setErreur('')
+ 
+    try {
+      const res = await fetch('http://localhost/vitacare/backend/api/rendezvous.php?action=reserver', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          id_service: service.ID_service,
+          id_intervenant: intervenant.ID_utilisateur,
+          id_dispo: creneau.ID_dispo,
+          date_heure
+        })
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setErreur(data.error || 'Erreur lors de la reservation')
+      } else {
+        setEtape(3)
+      }
+    } catch {
+      setErreur('Impossible de contacter le serveur')
+    } finally {
+      setLoading(false)
+    }
+  }
+ 
+  const mois = ['Jan', 'Fev', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aou', 'Sep', 'Oct', 'Nov', 'Dec']
+  const d = new Date(date_heure)
+ 
+  const styles = {
+    page: {
+      maxWidth: '900px',
+      margin: '0 auto',
+      padding: '32px 24px',
+    },
+    steps: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: '0',
+      marginBottom: '40px',
+    },
+    step: (active, done) => ({
+      display: 'flex',
+      alignItems: 'center',
+      gap: '8px',
+    }),
+    stepNum: (active, done) => ({
+      width: '28px',
+      height: '28px',
+      borderRadius: '50%',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontSize: '13px',
+      fontWeight: '600',
+      background: done ? '#1D9E75' : active ? '#534AB7' : '#e5e5e5',
+      color: done || active ? '#fff' : '#888',
+    }),
+    stepLabel: (active) => ({
+      fontSize: '13px',
+      color: active ? '#222' : '#aaa',
+      fontWeight: active ? '600' : '400',
+    }),
+    stepLine: (done) => ({
+      width: '60px',
+      height: '1px',
+      background: done ? '#1D9E75' : '#e5e5e5',
+      margin: '0 8px',
+    }),
+    grid: {
+      display: 'grid',
+      gridTemplateColumns: '1fr 320px',
+      gap: '32px',
+    },
+    left: {},
+    right: {},
+    card: {
+      backgroundColor: '#fff',
+      border: '1px solid #e5e5e5',
+      borderRadius: '10px',
+      padding: '20px',
+      marginBottom: '16px',
+    },
+    cardTitle: {
+      fontSize: '15px',
+      fontWeight: '600',
+      margin: '0 0 16px',
+      color: '#222',
+    },
+    field: {
+      marginBottom: '14px',
+    },
+    label: {
+      display: 'block',
+      fontSize: '12px',
+      color: '#555',
+      marginBottom: '4px',
+      fontWeight: '500',
+    },
+    input: {
+      width: '100%',
+      fontSize: '14px',
+      padding: '9px 12px',
+      borderRadius: '8px',
+      border: '1px solid #ccc',
+      fontFamily: 'Arial, sans-serif',
+      boxSizing: 'border-box',
+    },
+    textarea: {
+      width: '100%',
+      fontSize: '14px',
+      padding: '9px 12px',
+      borderRadius: '8px',
+      border: '1px solid #ccc',
+      fontFamily: 'Arial, sans-serif',
+      boxSizing: 'border-box',
+      resize: 'none',
+      height: '70px',
+    },
+    twoCol: {
+      display: 'grid',
+      gridTemplateColumns: '1fr 1fr',
+      gap: '10px',
+    },
+    carteMock: {
+      background: 'linear-gradient(135deg, #534AB7, #3C3489)',
+      borderRadius: '10px',
+      padding: '16px',
+      marginBottom: '14px',
+      color: '#fff',
+    },
+    carteNumber: {
+      fontSize: '16px',
+      letterSpacing: '3px',
+      margin: '8px 0',
+    },
+    infoBox: (color) => ({
+      fontSize: '12px',
+      color: color === 'vert' ? '#085041' : '#633806',
+      backgroundColor: color === 'vert' ? '#e1f5ee' : '#faeeda',
+      border: '1px solid ' + (color === 'vert' ? '#5dcaa5' : '#f0c070'),
+      borderRadius: '6px',
+      padding: '10px 12px',
+      marginBottom: '12px',
+    }),
+    recapRow: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      fontSize: '13px',
+      padding: '7px 0',
+      borderBottom: '1px solid #f5f5f5',
+    },
+    recapLabel: {
+      color: '#888',
+    },
+    recapVal: {
+      fontWeight: '500',
+      color: '#222',
+    },
+    total: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      fontSize: '16px',
+      fontWeight: '600',
+      padding: '12px 0 0',
+      color: '#222',
+    },
+    btnPrimary: {
+      width: '100%',
+      padding: '12px',
+      fontSize: '14px',
+      fontWeight: '600',
+      borderRadius: '8px',
+      border: 'none',
+      background: '#534AB7',
+      color: '#fff',
+      cursor: 'pointer',
+      fontFamily: 'Arial, sans-serif',
+      marginBottom: '8px',
+    },
+    btnOutline: {
+      width: '100%',
+      padding: '10px',
+      fontSize: '13px',
+      borderRadius: '8px',
+      border: '1px solid #ccc',
+      background: 'transparent',
+      color: '#666',
+      cursor: 'pointer',
+      fontFamily: 'Arial, sans-serif',
+    },
+    erreur: {
+      fontSize: '13px',
+      color: '#c0392b',
+      backgroundColor: '#fdf0f0',
+      border: '1px solid #f5c6c6',
+      borderRadius: '6px',
+      padding: '10px 12px',
+      marginBottom: '12px',
+    },
+    succes: {
+      textAlign: 'center',
+      padding: '60px 24px',
+    },
+    succesIcon: {
+      fontSize: '64px',
+      marginBottom: '16px',
+    },
+    succesTitle: {
+      fontSize: '24px',
+      fontWeight: '600',
+      color: '#1D9E75',
+      margin: '0 0 8px',
+    },
+    succesSub: {
+      fontSize: '14px',
+      color: '#666',
+      margin: '0 0 32px',
+    },
+  }
+ 
+  if (etape === 3) {
+    return (
+      <div style={styles.page}>
+        <div style={styles.succes}>
+          <div style={styles.succesIcon}>✅</div>
+          <h1 style={styles.succesTitle}>Rendez-vous confirme</h1>
+          <p style={styles.succesSub}>
+            Votre reservation pour {service.nom_service} le {d.getDate()} {mois[d.getMonth()]} {d.getFullYear()} a {d.getHours()}h{String(d.getMinutes()).padStart(2, '0')} est confirmee.
+          </p>
+          <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+            <button style={{ ...styles.btnPrimary, width: 'auto', padding: '12px 24px' }} onClick={() => navigate('dashboard')}>
+              Voir mes rendez-vous
+            </button>
+            <button style={{ ...styles.btnOutline, width: 'auto', padding: '10px 24px' }} onClick={() => navigate('accueil')}>
+              Retour au catalogue
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+ 
+  return (
+    <div style={styles.page}>
+ 
+      <div style={styles.steps}>
+        <div style={styles.step(true, etape > 1)}>
+          <div style={styles.stepNum(etape === 1, etape > 1)}>{etape > 1 ? '✓' : '1'}</div>
+          <span style={styles.stepLabel(etape === 1)}>Informations</span>
+        </div>
+        <div style={styles.stepLine(etape > 1)}></div>
+        <div style={styles.step(etape === 2, etape > 2)}>
+          <div style={styles.stepNum(etape === 2, etape > 2)}>{etape > 2 ? '✓' : '2'}</div>
+          <span style={styles.stepLabel(etape === 2)}>Paiement</span>
+        </div>
+        <div style={styles.stepLine(etape > 2)}></div>
+        <div style={styles.step(etape === 3, false)}>
+          <div style={styles.stepNum(etape === 3, false)}>3</div>
+          <span style={styles.stepLabel(etape === 3)}>Confirmation</span>
+        </div>
+      </div>
+ 
+      <div style={styles.grid}>
+        <div style={styles.left}>
+ 
+          {etape === 1 && (
+            <div style={styles.card}>
+              <p style={styles.cardTitle}>Vos informations</p>
+              <div style={styles.twoCol}>
+                <div style={styles.field}>
+                  <label style={styles.label}>Nom</label>
+                  <input style={styles.input} type="text" name="nom" value={form.nom} onChange={handleChange} />
+                </div>
+                <div style={styles.field}>
+                  <label style={styles.label}>Prenom</label>
+                  <input style={styles.input} type="text" name="prenom" value={form.prenom} onChange={handleChange} />
+                </div>
+              </div>
+              <div style={styles.field}>
+                <label style={styles.label}>Email</label>
+                <input style={styles.input} type="email" name="email" value={form.email} onChange={handleChange} placeholder="exemple@email.com" />
+              </div>
+              <div style={styles.field}>
+                <label style={styles.label}>Note pour l'intervenant (optionnel)</label>
+                <textarea style={styles.textarea} name="note" value={form.note} onChange={handleChange} placeholder="Informations utiles pour l'intervenant..." />
+              </div>
+              <button style={styles.btnPrimary} onClick={() => setEtape(2)}>
+                Continuer vers le paiement
+              </button>
+              <button style={styles.btnOutline} onClick={() => navigate('service', service.ID_service)}>
+                Retour
+              </button>
+            </div>
+          )}
+ 
+          {etape === 2 && (
+            <div style={styles.card}>
+              <p style={styles.cardTitle}>Paiement simule</p>
+ 
+              <div style={styles.infoBox('orange')}>
+                Le paiement est simule dans le cadre pedagogique. Aucune donnee bancaire reelle n'est transmise.
+              </div>
+ 
+              <div style={styles.carteMock}>
+                <div style={{ fontSize: '12px', opacity: 0.8 }}>VitaCare</div>
+                <div style={styles.carteNumber}>{form.carte}</div>
+                <div style={{ fontSize: '12px', opacity: 0.8 }}>VISA</div>
+              </div>
+ 
+              <div style={styles.field}>
+                <label style={styles.label}>Numero de carte</label>
+                <input style={styles.input} type="text" name="carte" value={form.carte} onChange={handleChange} placeholder="4242 4242 4242 4242" />
+              </div>
+              <div style={styles.twoCol}>
+                <div style={styles.field}>
+                  <label style={styles.label}>Date d'expiration</label>
+                  <input style={styles.input} type="text" name="expiration" value={form.expiration} onChange={handleChange} placeholder="MM / AA" />
+                </div>
+                <div style={styles.field}>
+                  <label style={styles.label}>CVV</label>
+                  <input style={styles.input} type="text" name="cvv" value={form.cvv} onChange={handleChange} placeholder="123" />
+                </div>
+              </div>
+ 
+              {erreur && <div style={styles.erreur}>{erreur}</div>}
+ 
+              <button style={styles.btnPrimary} onClick={handleConfirmer} disabled={loading}>
+                {loading ? 'Confirmation...' : 'Confirmer et payer ' + service.tarif + ' €'}
+              </button>
+              <button style={styles.btnOutline} onClick={() => setEtape(1)}>
+                Retour
+              </button>
+            </div>
+          )}
+ 
+        </div>
+ 
+        <div style={styles.right}>
+          <div style={styles.card}>
+            <p style={styles.cardTitle}>Recapitulatif</p>
+            <div style={styles.recapRow}>
+              <span style={styles.recapLabel}>Service</span>
+              <span style={styles.recapVal}>{service.nom_service}</span>
+            </div>
+            <div style={styles.recapRow}>
+              <span style={styles.recapLabel}>Intervenant</span>
+              <span style={styles.recapVal}>{intervenant.prenom} {intervenant.nom}</span>
+            </div>
+            <div style={styles.recapRow}>
+              <span style={styles.recapLabel}>Date</span>
+              <span style={styles.recapVal}>{d.getDate()} {mois[d.getMonth()]} {d.getFullYear()}</span>
+            </div>
+            <div style={styles.recapRow}>
+              <span style={styles.recapLabel}>Heure</span>
+              <span style={styles.recapVal}>{d.getHours()}h{String(d.getMinutes()).padStart(2, '0')}</span>
+            </div>
+            <div style={styles.recapRow}>
+              <span style={styles.recapLabel}>Duree</span>
+              <span style={styles.recapVal}>{service.duree_min} min</span>
+            </div>
+            <div style={styles.recapRow}>
+              <span style={styles.recapLabel}>Lieu</span>
+              <span style={styles.recapVal}>VitaCare Centre</span>
+            </div>
+            <div style={styles.total}>
+              <span>Total</span>
+              <span style={{ color: '#534AB7' }}>{service.tarif} €</span>
+            </div>
+          </div>
+ 
+          <div style={styles.infoBox('vert')}>
+            Annulation gratuite jusqu'a 24h avant le rendez-vous.
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+ 
+export default Panier
