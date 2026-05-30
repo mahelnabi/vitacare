@@ -1,0 +1,248 @@
+import { useState, useEffect } from 'react'
+
+function FicheIntervenant({ intervenantId, user, navigate }) {
+  const [intervenant, setIntervenant] = useState(null)
+  const [services, setServices] = useState([])
+  const [avis, setAvis] = useState([])
+  const [moyenne, setMoyenne] = useState(null)
+  const [totalAvis, setTotalAvis] = useState(0)
+  const [loading, setLoading] = useState(true)
+  const [showForm, setShowForm] = useState(false)
+  const [rdvEligible, setRdvEligible] = useState(null)
+  const [form, setForm] = useState({ note: 5, commentaire: '' })
+  const [message, setMessage] = useState('')
+  const [erreur, setErreur] = useState('')
+
+  useEffect(() => {
+    chargerDonnees()
+  }, [intervenantId])
+
+  const chargerDonnees = async () => {
+    try {
+      const [intRes, avisRes] = await Promise.all([
+        fetch(`http://localhost/vitacare/backend/api/intervenants.php?action=detail&id=${intervenantId}`),
+        fetch(`http://localhost/vitacare/backend/api/avis.php?action=liste-intervenant&id_intervenant=${intervenantId}`)
+      ])
+      const intData = await intRes.json()
+      const avisData = await avisRes.json()
+      setIntervenant(intData.intervenant)
+      setServices(intData.services || [])
+      setAvis(avisData.avis || [])
+      setMoyenne(avisData.moyenne)
+      setTotalAvis(avisData.total)
+    } catch {}
+    setLoading(false)
+  }
+
+  const chercherRdvEligible = async () => {
+    if (!user) { navigate('connexion'); return }
+    setErreur('')
+    try {
+      const res = await fetch('http://localhost/vitacare/backend/api/rendezvous.php?action=mes-rdv', { credentials: 'include' })
+      const data = await res.json()
+      const now = new Date()
+      const rdvsAvecCetIntervenant = (data.rdvs || []).filter(r =>
+        parseInt(r.ID_intervenant) === parseInt(intervenantId) &&
+        r.statut === 'confirme' &&
+        new Date(r.date_heure) < now
+      )
+      if (rdvsAvecCetIntervenant.length > 0) {
+        setRdvEligible(rdvsAvecCetIntervenant[0])
+        setShowForm(true)
+      } else {
+        setErreur('Vous devez avoir eu une consultation passee et confirmee avec cet intervenant pour laisser un avis.')
+      }
+    } catch { setErreur('Erreur serveur') }
+  }
+
+  const soumettreAvis = async () => {
+    if (!rdvEligible) return
+    setMessage(''); setErreur('')
+    try {
+      const res = await fetch('http://localhost/vitacare/backend/api/avis.php?action=ajouter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          id_rdv: rdvEligible.ID_rdv,
+          id_intervenant: parseInt(intervenantId),
+          note: form.note,
+          commentaire: form.commentaire
+        })
+      })
+      const data = await res.json()
+      if (!res.ok) { setErreur(data.error) }
+      else {
+        setMessage('Merci pour votre avis.')
+        setShowForm(false)
+        chargerDonnees()
+      }
+    } catch { setErreur('Erreur serveur') }
+  }
+
+  const etoiles = (note, taille = 14) => {
+    return Array.from({ length: 5 }, (_, i) => (
+      <span key={i} style={{ fontSize: taille, color: i < note ? '#F59E0B' : '#DDD' }}>★</span>
+    ))
+  }
+
+  const icones = { 'Bien-etre': '🧘', 'Nutrition': '🥗', 'Sante': '🏥', 'Sante mentale': '🧠' }
+
+  const styles = {
+    page: { maxWidth: '900px', margin: '0 auto', padding: '32px 24px' },
+    breadcrumb: { fontSize: '13px', color: '#888', marginBottom: '24px' },
+    link: { color: '#534AB7', cursor: 'pointer', background: 'none', border: 'none', fontSize: '13px', fontFamily: 'Arial, sans-serif' },
+    grid: { display: 'grid', gridTemplateColumns: '280px 1fr', gap: '32px' },
+    profileCard: { backgroundColor: '#f9f9fb', border: '1px solid #e5e5e5', borderRadius: '12px', padding: '28px', textAlign: 'center', height: 'fit-content' },
+    avatar: { width: '80px', height: '80px', borderRadius: '50%', background: '#eeedfe', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px', fontWeight: '600', color: '#534AB7', margin: '0 auto 16px' },
+    name: { fontSize: '18px', fontWeight: '600', margin: '0 0 4px', color: '#222' },
+    specialite: { fontSize: '14px', color: '#534AB7', margin: '0 0 8px', fontWeight: '500' },
+    tel: { fontSize: '13px', color: '#888', margin: '0 0 12px' },
+    statsRow: { display: 'flex', gap: '12px', justifyContent: 'center', marginBottom: '16px' },
+    statItem: { textAlign: 'center' },
+    statVal: { fontSize: '18px', fontWeight: '600', color: '#534AB7', display: 'block' },
+    statLabel: { fontSize: '11px', color: '#888' },
+    badge: { fontSize: '12px', padding: '4px 12px', borderRadius: '10px', background: '#e1f5ee', color: '#085041', display: 'inline-block', marginBottom: '16px' },
+    btnPrimary: { width: '100%', padding: '10px', fontSize: '13px', fontWeight: '500', borderRadius: '8px', border: 'none', background: '#534AB7', color: '#fff', cursor: 'pointer', fontFamily: 'Arial, sans-serif', marginBottom: '8px' },
+    btnOutline: { width: '100%', padding: '9px', fontSize: '13px', borderRadius: '8px', border: '1px solid #ccc', background: 'transparent', color: '#666', cursor: 'pointer', fontFamily: 'Arial, sans-serif' },
+    sectionTitle: { fontSize: '16px', fontWeight: '600', margin: '0 0 12px', color: '#222' },
+    bio: { fontSize: '14px', color: '#555', lineHeight: '1.7', margin: '0 0 24px' },
+    servicesGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '10px', marginBottom: '28px' },
+    serviceCard: { backgroundColor: '#fff', border: '1px solid #e5e5e5', borderRadius: '10px', padding: '14px', cursor: 'pointer' },
+    serviceIcon: { fontSize: '24px', marginBottom: '6px' },
+    serviceNom: { fontSize: '12px', fontWeight: '600', margin: '0 0 3px', color: '#222' },
+    serviceMeta: { fontSize: '11px', color: '#888', margin: '0 0 4px' },
+    servicePrice: { fontSize: '13px', fontWeight: '600', color: '#534AB7' },
+    divider: { borderTop: '1px solid #e5e5e5', margin: '20px 0' },
+    avisCard: { backgroundColor: '#f9f9fb', border: '1px solid #e5e5e5', borderRadius: '10px', padding: '16px', marginBottom: '10px' },
+    avisHeader: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' },
+    avisNom: { fontSize: '13px', fontWeight: '600', color: '#222' },
+    avisDate: { fontSize: '11px', color: '#aaa' },
+    avisCommentaire: { fontSize: '13px', color: '#555', lineHeight: '1.6', margin: 0 },
+    formBox: { backgroundColor: '#f9f9fb', border: '1px solid #e5e5e5', borderRadius: '10px', padding: '20px', marginBottom: '16px' },
+    noteSelector: { display: 'flex', gap: '8px', marginBottom: '14px' },
+    noteBtn: (selected) => ({ fontSize: '28px', cursor: 'pointer', background: 'none', border: 'none', color: selected ? '#F59E0B' : '#DDD', padding: 0 }),
+    textarea: { width: '100%', fontSize: '14px', padding: '10px 12px', borderRadius: '8px', border: '1px solid #ccc', fontFamily: 'Arial, sans-serif', boxSizing: 'border-box', resize: 'none', height: '80px' },
+    msgSucces: { fontSize: '13px', color: '#085041', backgroundColor: '#e1f5ee', border: '1px solid #5dcaa5', borderRadius: '6px', padding: '10px 12px', marginBottom: '12px' },
+    msgErreur: { fontSize: '13px', color: '#c0392b', backgroundColor: '#fdf0f0', border: '1px solid #f5c6c6', borderRadius: '6px', padding: '10px 12px', marginBottom: '12px' },
+    moyenneBox: { display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' },
+    moyenneVal: { fontSize: '32px', fontWeight: '700', color: '#F59E0B' },
+    loading: { textAlign: 'center', padding: '80px', color: '#888' },
+    emptyAvis: { fontSize: '13px', color: '#aaa', textAlign: 'center', padding: '20px' }
+  }
+
+  if (loading) return <p style={styles.loading}>Chargement...</p>
+  if (!intervenant) return <p style={styles.loading}>Intervenant non trouve.</p>
+
+  return (
+    <div style={styles.page}>
+      <p style={styles.breadcrumb}>
+        <button style={styles.link} onClick={() => navigate('accueil')}>Accueil</button>
+        {' / '}
+        <button style={styles.link} onClick={() => navigate('intervenants')}>Intervenants</button>
+        {' / '}
+        {intervenant.prenom} {intervenant.nom}
+      </p>
+
+      <div style={styles.grid}>
+        <div>
+          <div style={styles.profileCard}>
+            <div style={styles.avatar}>{intervenant.prenom[0]}{intervenant.nom[0]}</div>
+            <p style={styles.name}>{intervenant.prenom} {intervenant.nom}</p>
+            <p style={styles.specialite}>{intervenant.specialite || 'Intervenant VitaCare'}</p>
+            <p style={styles.tel}>{intervenant.telephone}</p>
+            {moyenne && (
+              <div style={{ marginBottom: '12px' }}>
+                <div>{etoiles(Math.round(moyenne))}</div>
+                <p style={{ fontSize: '12px', color: '#888', margin: '4px 0 0' }}>{moyenne}/5 ({totalAvis} avis)</p>
+              </div>
+            )}
+            <div style={styles.statsRow}>
+              <div style={styles.statItem}><span style={styles.statVal}>{intervenant.nb_rdvs}</span><span style={styles.statLabel}>Consultations</span></div>
+              <div style={styles.statItem}><span style={styles.statVal}>{services.length}</span><span style={styles.statLabel}>Services</span></div>
+            </div>
+            <span style={styles.badge}>Disponible sur VitaCare</span>
+            <button style={styles.btnPrimary} onClick={() => navigate('accueil')}>Reserver une consultation</button>
+            {user && !showForm && (
+              <button style={styles.btnOutline} onClick={chercherRdvEligible}>Laisser un avis</button>
+            )}
+          </div>
+        </div>
+
+        <div>
+          <p style={styles.sectionTitle}>A propos</p>
+          <p style={styles.bio}>{intervenant.bio || `${intervenant.prenom} ${intervenant.nom} est intervenant sur VitaCare.`}</p>
+
+          <div style={styles.divider} />
+
+          <p style={styles.sectionTitle}>Services proposes ({services.length})</p>
+          <div style={styles.servicesGrid}>
+            {services.map(s => (
+              <div key={s.ID_service} style={styles.serviceCard} onClick={() => navigate('service', s.ID_service)}>
+                <div style={styles.serviceIcon}>{icones[s.categorie] || '💊'}</div>
+                <p style={styles.serviceNom}>{s.nom_service}</p>
+                <p style={styles.serviceMeta}>{s.duree_min} min</p>
+                <p style={styles.servicePrice}>{s.tarif} €</p>
+              </div>
+            ))}
+          </div>
+
+          <div style={styles.divider} />
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <p style={{ ...styles.sectionTitle, margin: 0 }}>Avis patients ({totalAvis})</p>
+            {moyenne && (
+              <div style={styles.moyenneBox}>
+                <span style={styles.moyenneVal}>{moyenne}</span>
+                <div>{etoiles(Math.round(moyenne), 18)}</div>
+              </div>
+            )}
+          </div>
+
+          {message && <div style={styles.msgSucces}>{message}</div>}
+          {erreur && <div style={styles.msgErreur}>{erreur}</div>}
+
+          {showForm && rdvEligible && (
+            <div style={styles.formBox}>
+              <p style={{ fontSize: '14px', fontWeight: '600', margin: '0 0 12px' }}>Votre avis</p>
+              <p style={{ fontSize: '12px', color: '#888', margin: '0 0 8px' }}>Note :</p>
+              <div style={styles.noteSelector}>
+                {[1, 2, 3, 4, 5].map(n => (
+                  <button key={n} style={styles.noteBtn(form.note >= n)} onClick={() => setForm({ ...form, note: n })}>★</button>
+                ))}
+              </div>
+              <p style={{ fontSize: '12px', color: '#888', margin: '0 0 6px' }}>Commentaire (optionnel) :</p>
+              <textarea
+                style={styles.textarea}
+                placeholder="Decrivez votre experience..."
+                value={form.commentaire}
+                onChange={e => setForm({ ...form, commentaire: e.target.value })}
+              />
+              <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
+                <button style={{ ...styles.btnPrimary, width: 'auto', padding: '8px 20px' }} onClick={soumettreAvis}>Publier</button>
+                <button style={{ ...styles.btnOutline, width: 'auto', padding: '8px 16px' }} onClick={() => setShowForm(false)}>Annuler</button>
+              </div>
+            </div>
+          )}
+
+          {avis.length === 0 ? (
+            <p style={styles.emptyAvis}>Aucun avis pour le moment. Soyez le premier a donner votre avis.</p>
+          ) : (
+            avis.map(a => (
+              <div key={a.ID_avis} style={styles.avisCard}>
+                <div style={styles.avisHeader}>
+                  <span style={styles.avisNom}>{a.patient_prenom} {a.patient_nom}</span>
+                  <span style={styles.avisDate}>{new Date(a.date_avis).toLocaleDateString('fr-FR')}</span>
+                </div>
+                <div style={{ marginBottom: '8px' }}>{etoiles(a.note)}</div>
+                {a.commentaire && <p style={styles.avisCommentaire}>{a.commentaire}</p>}
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default FicheIntervenant

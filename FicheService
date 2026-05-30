@@ -1,0 +1,306 @@
+import { useState, useEffect } from 'react'
+ 
+function FicheService({ serviceId, user, navigate }) {
+  const [service, setService] = useState(null)
+  const [intervenants, setIntervenants] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [intervenantChoisi, setIntervenantChoisi] = useState(null)
+  const [disponibilites, setDisponibilites] = useState([])
+  const [creneauChoisi, setCreneauChoisi] = useState(null)
+  const [erreur, setErreur] = useState('')
+ 
+  useEffect(() => {
+    fetch(`http://localhost/vitacare/backend/api/services.php?action=detail&id=${serviceId}`)
+      .then(res => res.json())
+      .then(data => {
+        setService(data.service)
+        setIntervenants(data.intervenants || [])
+        setLoading(false)
+      })
+      .catch(() => setLoading(false))
+  }, [serviceId])
+ 
+  useEffect(() => {
+    if (!intervenantChoisi) return
+    fetch(`http://localhost/vitacare/backend/api/disponibilites.php?action=liste&id_intervenant=${intervenantChoisi}`)
+      .then(res => res.json())
+      .then(data => setDisponibilites(data.disponibilites || []))
+      .catch(() => {})
+  }, [intervenantChoisi])
+ 
+  const handleReserver = () => {
+    if (!user) {
+      navigate('connexion')
+      return
+    }
+    if (!intervenantChoisi || !creneauChoisi) {
+      setErreur('Choisissez un intervenant et un creneau')
+      return
+    }
+ 
+    const intervenant = intervenants.find(i => i.ID_utilisateur === intervenantChoisi)
+ 
+    navigate('panier', {
+      service,
+      intervenant,
+      creneau: creneauChoisi,
+      date_heure: creneauChoisi.date + ' ' + creneauChoisi.heure_debut
+    })
+  }
+ 
+  const styles = {
+    page: {
+      maxWidth: '1000px',
+      margin: '0 auto',
+      padding: '32px 24px',
+    },
+    breadcrumb: {
+      fontSize: '13px',
+      color: '#888',
+      marginBottom: '24px',
+    },
+    link: {
+      color: '#534AB7',
+      cursor: 'pointer',
+      background: 'none',
+      border: 'none',
+      fontSize: '13px',
+      fontFamily: 'Arial, sans-serif',
+    },
+    grid: {
+      display: 'grid',
+      gridTemplateColumns: '1fr 340px',
+      gap: '32px',
+    },
+    left: {},
+    right: {},
+    serviceImg: {
+      height: '160px',
+      backgroundColor: '#f0effe',
+      borderRadius: '10px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontSize: '56px',
+      marginBottom: '20px',
+    },
+    title: {
+      fontSize: '24px',
+      fontWeight: '600',
+      margin: '0 0 8px',
+      color: '#222',
+    },
+    meta: {
+      display: 'flex',
+      gap: '16px',
+      fontSize: '13px',
+      color: '#888',
+      marginBottom: '20px',
+    },
+    badge: {
+      fontSize: '12px',
+      padding: '3px 10px',
+      borderRadius: '10px',
+      background: '#e1f5ee',
+      color: '#085041',
+    },
+    sectionTitle: {
+      fontSize: '15px',
+      fontWeight: '600',
+      margin: '20px 0 8px',
+      color: '#222',
+    },
+    desc: {
+      fontSize: '14px',
+      color: '#555',
+      lineHeight: '1.7',
+    },
+    bookingBox: {
+      backgroundColor: '#fff',
+      border: '1px solid #e5e5e5',
+      borderRadius: '10px',
+      padding: '20px',
+    },
+    price: {
+      fontSize: '26px',
+      fontWeight: '600',
+      color: '#534AB7',
+      margin: '0 0 4px',
+    },
+    priceSub: {
+      fontSize: '12px',
+      color: '#aaa',
+      margin: '0 0 20px',
+    },
+    slotsGrid: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(3, 1fr)',
+      gap: '6px',
+      marginBottom: '16px',
+    },
+    slot: (selected) => ({
+      fontSize: '12px',
+      padding: '8px 4px',
+      borderRadius: '6px',
+      border: '1px solid ' + (selected ? '#534AB7' : '#ccc'),
+      background: selected ? '#534AB7' : 'transparent',
+      color: selected ? '#fff' : '#555',
+      cursor: 'pointer',
+      fontFamily: 'Arial, sans-serif',
+      textAlign: 'center',
+    }),
+    btnPrimary: {
+      width: '100%',
+      padding: '11px',
+      fontSize: '14px',
+      fontWeight: '600',
+      borderRadius: '8px',
+      border: 'none',
+      background: '#534AB7',
+      color: '#fff',
+      cursor: 'pointer',
+      fontFamily: 'Arial, sans-serif',
+    },
+    erreur: {
+      fontSize: '13px',
+      color: '#c0392b',
+      backgroundColor: '#fdf0f0',
+      border: '1px solid #f5c6c6',
+      borderRadius: '6px',
+      padding: '10px 12px',
+      marginBottom: '12px',
+    },
+    loading: {
+      textAlign: 'center',
+      padding: '80px',
+      color: '#888',
+    }
+  }
+ 
+  const icones = {
+    'Bien-etre': '🧘',
+    'Nutrition': '🥗',
+    'Sante': '🏥',
+    'Sante mentale': '🧠',
+  }
+ 
+  if (loading) return <p style={styles.loading}>Chargement...</p>
+  if (!service) return <p style={styles.loading}>Service non trouve.</p>
+ 
+  return (
+    <div style={styles.page}>
+      <p style={styles.breadcrumb}>
+        <button style={styles.link} onClick={() => navigate('accueil')}>Accueil</button>
+        {' / '}
+        <button style={styles.link} onClick={() => navigate('accueil')}>Services</button>
+        {' / '}
+        {service.nom_service}
+      </p>
+ 
+      <div style={styles.grid}>
+        <div style={styles.left}>
+          <div style={styles.serviceImg}>
+            {icones[service.categorie] || '💊'}
+          </div>
+ 
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <h1 style={styles.title}>{service.nom_service}</h1>
+            <span style={styles.badge}>Disponible</span>
+          </div>
+ 
+          <div style={styles.meta}>
+            <span>{service.duree_min} min</span>
+            <span>VitaCare Centre</span>
+            <span>{service.categorie}</span>
+          </div>
+ 
+          <p style={styles.sectionTitle}>Description</p>
+          <p style={styles.desc}>{service.description}</p>
+ 
+          <p style={styles.sectionTitle}>Intervenants disponibles</p>
+          {intervenants.map(i => (
+            <div key={i.ID_utilisateur} style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              padding: '12px',
+              border: '1px solid #e5e5e5',
+              borderRadius: '8px',
+              marginBottom: '8px',
+              background: intervenantChoisi === i.ID_utilisateur ? '#f0effe' : '#fff',
+              cursor: 'pointer',
+            }}
+              onClick={() => {
+                setIntervenantChoisi(i.ID_utilisateur)
+                setCreneauChoisi(null)
+              }}
+            >
+              <div style={{
+                width: '40px', height: '40px', borderRadius: '50%',
+                background: '#eeedfe', display: 'flex', alignItems: 'center',
+                justifyContent: 'center', fontWeight: '600', color: '#534AB7', fontSize: '14px',
+                flexShrink: 0
+              }}>
+                {i.prenom[0]}{i.nom[0]}
+              </div>
+              <div>
+                <p style={{ margin: '0 0 2px', fontWeight: '500', fontSize: '14px' }}>{i.prenom} {i.nom}</p>
+                <p style={{ margin: 0, fontSize: '12px', color: '#888' }}>{i.telephone}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+ 
+        <div style={styles.right}>
+          <div style={styles.bookingBox}>
+            <p style={styles.price}>{service.tarif} €</p>
+            <p style={styles.priceSub}>par seance</p>
+ 
+            {erreur && <div style={styles.erreur}>{erreur}</div>}
+ 
+            {intervenantChoisi && disponibilites.length > 0 && (
+              <>
+                <p style={{ fontSize: '13px', color: '#555', margin: '0 0 8px', fontWeight: '500' }}>
+                  Creneaux disponibles
+                </p>
+                <div style={styles.slotsGrid}>
+                  {disponibilites.map(d => (
+                    <button
+                      key={d.ID_dispo}
+                      style={styles.slot(creneauChoisi && creneauChoisi.ID_dispo === d.ID_dispo)}
+                      onClick={() => setCreneauChoisi(d)}
+                    >
+                      {d.date}<br />{d.heure_debut.slice(0, 5)}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+ 
+            {intervenantChoisi && disponibilites.length === 0 && (
+              <p style={{ fontSize: '13px', color: '#888', marginBottom: '16px' }}>
+                Aucun creneau disponible pour cet intervenant.
+              </p>
+            )}
+ 
+            {!intervenantChoisi && (
+              <p style={{ fontSize: '13px', color: '#888', marginBottom: '16px' }}>
+                Selectionnez un intervenant pour voir les creneaux.
+              </p>
+            )}
+ 
+            <button style={styles.btnPrimary} onClick={handleReserver}>
+              {user ? 'Continuer vers le paiement' : 'Se connecter pour reserver'}
+            </button>
+ 
+            <p style={{ fontSize: '12px', color: '#aaa', textAlign: 'center', marginTop: '10px' }}>
+              Annulation gratuite jusqu a 24h avant
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+ 
+export default FicheService
