@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
  
-function FicheService({ serviceId, user, navigate }) {  
+function FicheService({ serviceId, user, navigate }) {
   const [service, setService] = useState(null)
   const [intervenants, setIntervenants] = useState([])
   const [loading, setLoading] = useState(true)
