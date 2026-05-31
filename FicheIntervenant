@@ -244,5 +244,5 @@ function FicheIntervenant({ intervenantId, user, navigate }) {
     </div>
   )
 }
-
+//test
 export default FicheIntervenant
