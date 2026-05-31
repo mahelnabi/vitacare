@@ -120,4 +120,4 @@ function Profil({ user, setUser, navigate }) {
 }
  
 export default Profil
-//test
+
