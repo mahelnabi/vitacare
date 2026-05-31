@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+
  
 function Accueil({ navigate }) {
   const [services, setServices] = useState([])
