@@ -1,6 +1,6 @@
 //céation panier
 import { useState } from 'react'
-   
+
 function Panier({ panierData, user, navigate }) {
   const [etape, setEtape] = useState(1)
   const [loading, setLoading] = useState(false)
