@@ -12,6 +12,7 @@ if (session_status() === PHP_SESSION_NONE) {
 $method = $_SERVER['REQUEST_METHOD'];
 $action = $_GET['action'] ?? '';
 $id = $_GET['id'] ?? null;
+
  
 if ($method === 'GET' && $action === 'liste') {
     liste();
@@ -28,6 +29,8 @@ if ($method === 'GET' && $action === 'liste') {
     echo json_encode(['error' => 'Action non trouvee']);
 }
  
+
+
 function liste() {
     $db = getDB();
     $categorie = $_GET['categorie'] ?? '';
@@ -82,6 +85,8 @@ function detail($id) {
     echo json_encode(['service' => $service, 'intervenants' => $intervenants]);
 }
  
+
+
 function ajouter() {
     if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
         http_response_code(403);
@@ -100,8 +105,10 @@ function ajouter() {
         echo json_encode(['error' => 'Champs obligatoires manquants']);
         return;
     }
+
  
     $db = getDB();
+
     $stmt = $db->prepare('INSERT INTO Service (nom_service, description, duree_min, tarif, categorie) VALUES (?, ?, ?, ?, ?)');
     $stmt->execute([$nom, $description, $duree, $tarif, $categorie]);
     http_response_code(201);
@@ -132,6 +139,8 @@ function modifier($id) {
     $stmt->execute([$nom, $description, $duree, $tarif, $categorie, $id]);
     echo json_encode(['message' => 'Service modifie']);
 }
+ 
+
  
 function supprimer($id) {
     if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {

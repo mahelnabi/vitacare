@@ -8,6 +8,8 @@ require_once __DIR__ . '/headers.php';
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
+
+
  
 if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
     http_response_code(403);
@@ -18,6 +20,9 @@ if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
 $method = $_SERVER['REQUEST_METHOD'];
 $action = $_GET['action'] ?? '';
  
+
+
+
 if ($method === 'GET' && $action === 'stats') { stats(); }
 elseif ($method === 'GET' && $action === 'utilisateurs') { utilisateurs(); }
 elseif ($method === 'GET' && $action === 'rdvs') { rdvs(); }
@@ -30,6 +35,8 @@ else {
     echo json_encode(['error' => 'Action non trouvee']);
 }
  
+
+
 function stats() {
     $db = getDB();
     $nbUsers = $db->query('SELECT COUNT(*) FROM Utilisateur WHERE role = "patient"')->fetchColumn();
@@ -45,6 +52,9 @@ function stats() {
     ]);
 }
  
+
+
+
 function utilisateurs() {
     $db = getDB();
     $stmt = $db->prepare('SELECT ID_utilisateur, nom, prenom, email, role, telephone, date_creation FROM Utilisateur ORDER BY date_creation DESC');
@@ -79,6 +89,9 @@ function supprimerUtilisateur() {
     $stmt->execute([$id]);
     echo json_encode(['message' => 'Utilisateur supprime']);
 }
+ 
+
+
  
 function supprimerRdv() {
     $data = json_decode(file_get_contents('php://input'), true);

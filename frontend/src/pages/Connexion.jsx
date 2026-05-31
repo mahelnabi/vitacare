@@ -89,6 +89,8 @@ function Connexion({ navigate, onConnexion }) {
       padding: '10px 12px',
       marginBottom: '16px',
     },
+
+
     btnPrimary: {
       width: '100%',
       padding: '11px',
@@ -108,6 +110,7 @@ function Connexion({ navigate, onConnexion }) {
       color: '#aaa',
       margin: '20px 0',
     },
+
     linkText: {
       textAlign: 'center',
       fontSize: '13px',
@@ -123,12 +126,16 @@ function Connexion({ navigate, onConnexion }) {
       textDecoration: 'underline',
     }
   }
+
+
  
   return (
     <div style={styles.page}>
       <div style={styles.card}>
         <h1 style={styles.title}>Se connecter</h1>
         <p style={styles.sub}>Accedez a votre espace personnel</p>
+
+
  
         {erreur && <div style={styles.erreur}>{erreur}</div>}
  
@@ -156,6 +163,8 @@ function Connexion({ navigate, onConnexion }) {
               required
             />
           </div>
+
+          
  
           <button style={styles.btnPrimary} type="submit" disabled={loading}>
             {loading ? 'Connexion...' : 'Valider'}

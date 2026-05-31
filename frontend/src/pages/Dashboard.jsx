@@ -68,6 +68,7 @@ function Dashboard({ user, navigate }) {
       setRdvAModifier(null)
       chargerDonnees()
     }
+    
   }
 
   const desinscrireActivite = async (id_activite) => {
@@ -140,6 +141,7 @@ function Dashboard({ user, navigate }) {
   if (!user) return null
   if (loading) return <p style={styles.loading}>Chargement...</p>
 
+
   return (
     <div style={styles.layout}>
       {rdvAModifier && (
@@ -169,12 +171,14 @@ function Dashboard({ user, navigate }) {
             </div>
           </div>
         </div>
+
       )}
 
       <div style={styles.sidebar}>
         <div style={styles.sidebarHeader}>
           <div style={styles.avatar}>{user.prenom[0]}{user.nom[0]}</div>
           <p style={styles.userName}>{user.prenom} {user.nom}</p>
+
           <p style={styles.userRole}>{user.role}</p>
         </div>
         <button style={styles.navItem(onglet === 'accueil')} onClick={() => setOnglet('accueil')}>Tableau de bord</button>
@@ -193,11 +197,13 @@ function Dashboard({ user, navigate }) {
             <p style={styles.pageSub}>Voici un resume de votre activite sur VitaCare</p>
             <div style={styles.metrics}>
               <div style={styles.metric}><p style={styles.metricLabel}>RDV a venir</p><p style={styles.metricVal}>{rdvsAVenir.length}</p></div>
+
               <div style={styles.metric}><p style={styles.metricLabel}>Activites inscrites</p><p style={styles.metricVal}>{activites.length}</p></div>
               <div style={styles.metric}><p style={styles.metricLabel}>Consultations totales</p><p style={styles.metricVal}>{rdvs.length}</p></div>
               <div style={styles.metric}><p style={styles.metricLabel}>Notifications non lues</p><p style={styles.metricVal}>{notifsNonLues}</p></div>
             </div>
             <div style={styles.twoCol}>
+
               <div>
                 <div style={styles.sectionHeader}>
                   <p style={styles.sectionTitle}>Prochains rendez-vous</p>
@@ -215,6 +221,8 @@ function Dashboard({ user, navigate }) {
                   )
                 })}
               </div>
+
+
               <div>
                 <div style={styles.sectionHeader}>
                   <p style={styles.sectionTitle}>Notifications recentes</p>
@@ -297,6 +305,7 @@ function Dashboard({ user, navigate }) {
               Voir toutes les activites
             </button>
           </>
+
         )}
 
         {onglet === 'notifications' && (
@@ -311,6 +320,7 @@ function Dashboard({ user, navigate }) {
               </div>
             ))}
           </>
+
         )}
       </div>
     </div>

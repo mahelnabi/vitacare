@@ -202,6 +202,8 @@ function FicheService({ serviceId, user, navigate }) {
           <div style={styles.serviceImg}>
             {icones[service.categorie] || '💊'}
           </div>
+
+          
  
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <h1 style={styles.title}>{service.nom_service}</h1>
@@ -213,6 +215,7 @@ function FicheService({ serviceId, user, navigate }) {
             <span>VitaCare Centre</span>
             <span>{service.categorie}</span>
           </div>
+
  
           <p style={styles.sectionTitle}>Description</p>
           <p style={styles.desc}>{service.description}</p>
@@ -256,6 +259,7 @@ function FicheService({ serviceId, user, navigate }) {
             <p style={styles.price}>{service.tarif} €</p>
             <p style={styles.priceSub}>par seance</p>
  
+
             {erreur && <div style={styles.erreur}>{erreur}</div>}
  
             {intervenantChoisi && disponibilites.length > 0 && (
@@ -276,6 +280,9 @@ function FicheService({ serviceId, user, navigate }) {
                 </div>
               </>
             )}
+
+
+
  
             {intervenantChoisi && disponibilites.length === 0 && (
               <p style={{ fontSize: '13px', color: '#888', marginBottom: '16px' }}>
@@ -288,6 +295,9 @@ function FicheService({ serviceId, user, navigate }) {
                 Selectionnez un intervenant pour voir les creneaux.
               </p>
             )}
+
+
+
  
             <button style={styles.btnPrimary} onClick={handleReserver}>
               {user ? 'Continuer vers le paiement' : 'Se connecter pour reserver'}

@@ -13,6 +13,8 @@ function Inscription({ navigate, onConnexion }) {
   const [erreur, setErreur] = useState('')
   const [loading, setLoading] = useState(false)
  
+
+
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value })
   }
@@ -32,6 +34,7 @@ function Inscription({ navigate, onConnexion }) {
     }
  
     setLoading(true)
+
  
     try {
       const res = await fetch('http://localhost/vitacare/backend/api/auth.php?action=inscription', {
@@ -116,6 +119,8 @@ function Inscription({ navigate, onConnexion }) {
       marginBottom: '5px',
       fontWeight: '500',
     },
+
+
     input: {
       width: '100%',
       fontSize: '14px',
@@ -125,6 +130,7 @@ function Inscription({ navigate, onConnexion }) {
       fontFamily: 'Arial, sans-serif',
       boxSizing: 'border-box',
     },
+
     select: {
       width: '100%',
       fontSize: '14px',
@@ -144,6 +150,7 @@ function Inscription({ navigate, onConnexion }) {
       padding: '10px 12px',
       marginBottom: '16px',
     },
+
     btnPrimary: {
       width: '100%',
       padding: '11px',
@@ -163,6 +170,8 @@ function Inscription({ navigate, onConnexion }) {
       color: '#666',
       marginTop: '20px',
     },
+
+
     link: {
       color: '#534AB7',
       cursor: 'pointer',
@@ -209,6 +218,9 @@ function Inscription({ navigate, onConnexion }) {
               />
             </div>
           </div>
+ 
+
+
  
           <div style={styles.field}>
             <label style={styles.label}>Adresse e-mail</label>

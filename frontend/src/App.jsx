@@ -83,6 +83,9 @@ function App() {
     }
   }
 
+
+  
+
   return (
     <div style={{ minHeight: '100vh', backgroundColor: darkMode ? '#16161e' : '#f9f9fb', fontFamily: 'Arial, sans-serif', transition: 'background-color 0.3s' }}>
       <Navbar user={user} navigate={navigate} onDeconnexion={handleDeconnexion} darkMode={darkMode} toggleDarkMode={toggleDarkMode} />

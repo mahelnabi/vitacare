@@ -22,6 +22,8 @@ function Navbar({ user, navigate, onDeconnexion, darkMode, toggleDarkMode }) {
       alignItems: 'center',
       gap: '8px',
     },
+
+    
     links: { display: 'flex', gap: '4px' },
     link: {
       fontSize: '13px',
@@ -35,6 +37,7 @@ function Navbar({ user, navigate, onDeconnexion, darkMode, toggleDarkMode }) {
       fontWeight: '500',
       transition: 'background 0.15s, color 0.15s',
     },
+
     actions: { display: 'flex', gap: '8px', alignItems: 'center' },
     btnDark: {
       fontSize: '18px',
@@ -72,6 +75,9 @@ function Navbar({ user, navigate, onDeconnexion, darkMode, toggleDarkMode }) {
       cursor: 'pointer',
     }
   }
+
+
+
 
   return (
     <nav style={styles.nav}>
