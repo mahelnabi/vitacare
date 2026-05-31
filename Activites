@@ -1,0 +1,279 @@
+import { useState, useEffect } from 'react'
+ 
+function Activites({ user, navigate }) {
+  const [activites, setActivites] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [messages, setMessages] = useState({})
+ 
+  useEffect(() => {
+    fetch('http://localhost/vitacare/backend/api/activites.php?action=liste')
+      .then(res => res.json())
+      .then(data => {
+        setActivites(data.activites || [])
+        setLoading(false)
+      })
+      .catch(() => setLoading(false))
+  }, [])
+ 
+  const inscrire = async (id_activite) => {
+    if (!user) {
+      navigate('connexion')
+      return
+    }
+ 
+    try {
+      const res = await fetch('http://localhost/vitacare/backend/api/activites.php?action=inscrire', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ id_activite })
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setMessages(prev => ({ ...prev, [id_activite]: { type: 'erreur', texte: data.error } }))
+      } else {
+        setMessages(prev => ({ ...prev, [id_activite]: { type: 'succes', texte: 'Inscription confirmee.' } }))
+        setActivites(prev => prev.map(a =>
+          a.ID_activite === id_activite
+            ? { ...a, nb_inscrits: parseInt(a.nb_inscrits) + 1 }
+            : a
+        ))
+      }
+    } catch {
+      setMessages(prev => ({ ...prev, [id_activite]: { type: 'erreur', texte: 'Erreur serveur' } }))
+    }
+  }
+ 
+  const icones = {
+    'Bien-etre': '🧘',
+    'Nutrition': '🥗',
+    'Sante': '🏥',
+    'Sante mentale': '🧠',
+  }
+ 
+  const styles = {
+    page: {
+      maxWidth: '1100px',
+      margin: '0 auto',
+      padding: '32px 24px',
+    },
+    header: {
+      marginBottom: '28px',
+    },
+    title: {
+      fontSize: '24px',
+      fontWeight: '600',
+      margin: '0 0 6px',
+      color: '#222',
+    },
+    sub: {
+      fontSize: '14px',
+      color: '#888',
+      margin: 0,
+    },
+    grid: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+      gap: '16px',
+    },
+    card: {
+      backgroundColor: '#fff',
+      border: '1px solid #e5e5e5',
+      borderRadius: '10px',
+      overflow: 'hidden',
+    },
+    cardHeader: {
+      height: '80px',
+      backgroundColor: '#f0effe',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontSize: '36px',
+    },
+    cardBody: {
+      padding: '16px',
+    },
+    cardTitle: {
+      fontSize: '15px',
+      fontWeight: '600',
+      margin: '0 0 6px',
+      color: '#222',
+    },
+    cardDesc: {
+      fontSize: '13px',
+      color: '#666',
+      margin: '0 0 12px',
+      lineHeight: '1.5',
+    },
+    cardMeta: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '4px',
+      marginBottom: '12px',
+    },
+    metaItem: {
+      fontSize: '12px',
+      color: '#888',
+    },
+    cardFooter: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingTop: '12px',
+      borderTop: '1px solid #f0f0f0',
+    },
+    price: {
+      fontSize: '15px',
+      fontWeight: '600',
+      color: '#534AB7',
+    },
+    places: (plein) => ({
+      fontSize: '12px',
+      padding: '3px 8px',
+      borderRadius: '10px',
+      background: plein ? '#fdf0f0' : '#e1f5ee',
+      color: plein ? '#c0392b' : '#085041',
+    }),
+    btnPrimary: {
+      width: '100%',
+      padding: '9px',
+      fontSize: '13px',
+      fontWeight: '500',
+      borderRadius: '8px',
+      border: 'none',
+      background: '#534AB7',
+      color: '#fff',
+      cursor: 'pointer',
+      fontFamily: 'Arial, sans-serif',
+      marginTop: '10px',
+    },
+    btnDisabled: {
+      width: '100%',
+      padding: '9px',
+      fontSize: '13px',
+      borderRadius: '8px',
+      border: 'none',
+      background: '#ccc',
+      color: '#fff',
+      cursor: 'not-allowed',
+      fontFamily: 'Arial, sans-serif',
+      marginTop: '10px',
+    },
+    msgSucces: {
+      fontSize: '12px',
+      color: '#085041',
+      backgroundColor: '#e1f5ee',
+      border: '1px solid #5dcaa5',
+      borderRadius: '6px',
+      padding: '6px 10px',
+      marginTop: '8px',
+    },
+    msgErreur: {
+      fontSize: '12px',
+      color: '#c0392b',
+      backgroundColor: '#fdf0f0',
+      border: '1px solid #f5c6c6',
+      borderRadius: '6px',
+      padding: '6px 10px',
+      marginTop: '8px',
+    },
+    loading: {
+      textAlign: 'center',
+      padding: '80px',
+      color: '#888',
+    },
+    empty: {
+      textAlign: 'center',
+      padding: '80px',
+      color: '#aaa',
+      fontSize: '14px',
+    },
+    footer: {
+      borderTop: '1px solid #e5e5e5',
+      padding: '20px 24px',
+      display: 'flex',
+      justifyContent: 'space-between',
+      fontSize: '12px',
+      color: '#aaa',
+      marginTop: '48px',
+    }
+  }
+ 
+  const mois = ['Jan', 'Fev', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aou', 'Sep', 'Oct', 'Nov', 'Dec']
+ 
+  return (
+    <div>
+      <div style={{ backgroundColor: '#f0effe', padding: '36px 24px', borderBottom: '1px solid #e5e5e5' }}>
+        <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+          <h1 style={styles.title}>Activites et programmes</h1>
+          <p style={styles.sub}>Inscrivez-vous aux activites collectives proposees par VitaCare</p>
+        </div>
+      </div>
+ 
+      <div style={styles.page}>
+        {loading ? (
+          <p style={styles.loading}>Chargement...</p>
+        ) : activites.length === 0 ? (
+          <p style={styles.empty}>Aucune activite disponible pour le moment.</p>
+        ) : (
+          <div style={styles.grid}>
+            {activites.map(a => {
+              const d = new Date(a.date_heure)
+              const plein = parseInt(a.nb_inscrits) >= parseInt(a.capacite_max)
+              const msg = messages[a.ID_activite]
+              const placesRestantes = parseInt(a.capacite_max) - parseInt(a.nb_inscrits)
+ 
+              return (
+                <div key={a.ID_activite} style={styles.card}>
+                  <div style={styles.cardHeader}>
+                    {icones[a.categorie] || '🏃'}
+                  </div>
+                  <div style={styles.cardBody}>
+                    <p style={styles.cardTitle}>{a.nom_activite}</p>
+                    <p style={styles.cardDesc}>{a.description}</p>
+                    <div style={styles.cardMeta}>
+                      <span style={styles.metaItem}>
+                        {d.getDate()} {mois[d.getMonth()]} {d.getFullYear()} — {d.getHours()}h{String(d.getMinutes()).padStart(2, '0')}
+                      </span>
+                      <span style={styles.metaItem}>{a.lieu}</span>
+                      <span style={styles.metaItem}>Categorie : {a.categorie}</span>
+                    </div>
+                    <div style={styles.cardFooter}>
+                      <span style={styles.price}>{parseFloat(a.tarif) === 0 ? 'Gratuit' : a.tarif + ' €'}</span>
+                      <span style={styles.places(plein)}>
+                        {plein ? 'Complet' : placesRestantes + ' place' + (placesRestantes > 1 ? 's' : '') + ' restante' + (placesRestantes > 1 ? 's' : '')}
+                      </span>
+                    </div>
+ 
+                    {msg && (
+                      <p style={msg.type === 'succes' ? styles.msgSucces : styles.msgErreur}>
+                        {msg.texte}
+                      </p>
+                    )}
+ 
+                    {!msg && (
+                      <button
+                        style={plein ? styles.btnDisabled : styles.btnPrimary}
+                        disabled={plein}
+                        onClick={() => inscrire(a.ID_activite)}
+                      >
+                        {plein ? 'Complet' : user ? "S'inscrire" : 'Se connecter pour s\'inscrire'}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
+ 
+      <div style={styles.footer}>
+        <span>VitaCare 2026 - Plateforme de sante et bien-etre</span>
+        <span>Mentions legales - Confidentialite - Contact</span>
+      </div>
+    </div>
+  )
+}
+ 
+export default Activites

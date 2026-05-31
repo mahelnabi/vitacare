@@ -160,4 +160,4 @@ Tous les comptes ont le mot de passe : `password`
 
 Projet realise par une equipe de 4 etudiants en ING2 a l'ECE Paris.
 
-Les outils d'intelligence artificielle ont ete utilises comme support lors de certaines phases du projet. L'equipe a verifie, adapte et valide chaque element produit.
+Les outils d'intelligence artificielle ont ete utilises comme support lors de certaines phases du projet. L'equipe a verifie, adapte et valide chaque element produit le mieux possible.
